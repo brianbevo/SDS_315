@@ -1,0 +1,247 @@
+---
+title: "SDS_315_HW_2"
+author: "Brian"
+date: "2025-01-28"
+output: 
+  html_document: 
+    toc: true
+    toc_float: true
+    toc_collapsed: true
+    toc_depth: 3
+    theme: lumen
+---
+
+```{r setup, echo=FALSE, include=FALSE}
+
+library(tidyverse)
+library(ggplot2)
+library(rvest)
+library(stringr)
+library(dplyr)
+library(knitr)
+
+setwd('/Users/brianhu/Desktop/SDS_315')
+
+```
+
+Check out the [SDS_315 GitHub repository](https://github.com/brianbevo/SDS_315).
+
+# Question 1
+
+## Part A
+
+```{r, echo=FALSE}
+prof <- read.csv("profs.csv")
+ggplot(prof, aes(x = eval)) +
+  geom_histogram(binwidth = 0.2, color = "lightblue", fill = "orange") +
+  labs(
+    title = "Distribution of Course Evaluations",
+    x = "Evaluation Scores",
+    y = "Frequency"
+  ) 
+
+```
+
+The histogram depicts a left-skewed distribution of evaluation scores centralized around 3.5 to 4. This skew towards higher scores indicates generally positive student evaluations, with only 12% of courses receiving ratings below 3.0.
+
+## Part B
+
+```{r, echo=FALSE}
+
+ggplot(prof, aes(x = factor(native, labels = c("Non-Native", "Native")), y = eval)) +
+  geom_boxplot(fill = c("orange", "blue"), color = "black") +
+  labs(
+    title = "Evaluation Scores by Native English Speakers",
+    x = "Native English Speaker Status",
+    y = "Course Evaluation Scores"
+  )
+
+```
+
+A comparison between native and non-native English speaking instructors reveals that native speakers have slightly higher median evaluation scores with a score of 4.1 compared to 3.8 with less score variability. The interquartile range for non-native speakers is wider meaning that they are more dispersed values in the native speaker ranger in relation to their course evaluation score.
+
+
+## Part C
+
+```{r, echo=FALSE}
+
+ggplot(prof, aes(x = eval, fill = gender)) +
+  geom_histogram(binwidth = 0.2, color = "black", alpha = 0.7) +
+  facet_grid(rows = vars(gender)) +
+  labs(
+    title = "Distribution of Evaluation Scores by Gender",
+    x = "Course Evaluation Scores",
+    y = "Frequency"
+  ) +
+  scale_fill_manual(values = c("orange", "black"))
+
+```
+
+When comparing genders while they have similar evaluation distrubtions, there is a slightly greater group of scores in the 4.- to 4.5 range male scores. However males and females have similar
+
+
+Male and female instructors show similar evaluation distributions, though female instructors have a slightly higher concentration of scores in the 4.0-4.5 range. Both genders show comparable median scores (4.0 for females vs 3.9 for males).
+
+## Part D
+
+```{r, echo=FALSE}
+
+ggplot(prof, aes(x = beauty, y = eval)) +
+  geom_point(alpha = 0.6, color = "orange") +
+  geom_smooth(method = "lm", se = FALSE, color = "purple") +
+  labs(
+    title = "Physical Attractiveness vs Course Evaluations",
+    x = "Physical Attractiveness (Standardized)",
+    y = "Course Evaluation Scores"
+  ) 
+
+```
+
+The analysis reveals a weak positive correlation of .19 between attractiveness and evaluations. Something interesting was that the instructors rated 1 standard deviation above average attractiveness tend to receive evaluations 0.3 points higher than those 1 standard deviation below average.
+
+# Question 2
+
+## Part A
+
+```{r, echo=FALSE}
+bike <-  read_csv("bikeshare.csv")
+
+bike1 <- read_csv("bikeshare.csv", show_col_types = FALSE) |> group_by(hr) |> summarise(avg_rentals = mean(total, na.rm = TRUE)) 
+
+ggplot(bike1) + (aes(x = hr, y = avg_rentals)) + geom_line(color = 'orange', size = 1)  + labs(
+    title = "Average Hourly Bike Rentals",
+    x = "Hour of Day",
+    y = "Average Rentals"
+  )
+
+```
+
+The idea of renting objects between people has various factors. Today's graph shows the relationship between number of individuals in UT renting of bike rates compared to the different hours of the day.What the graph shows that during hours in the morning 6 to 7 and the hours in the after noon 4-5 there were high spikes in rental numbers. A possible explanation could be that since poeple are commuting or going to work during those hours, the rates of rentals is impacted.
+
+## Part B
+```{r, echo=FALSE}
+
+bike2 <- read_csv("bikeshare.csv") |> group_by(hr, workingday)|>  
+  summarise(avg_rentals = mean(total, na.rm = TRUE), .groups = "drop") 
+
+  ggplot(bike2)+ (aes(x = hr, y = avg_rentals, color = as.factor(workingday))) +
+  geom_line(size = 1) +  facet_wrap(~workingday, labeller = labeller(workingday = c("0" = "Non-working Day", "1" = "Working Day"))) + labs(
+    title = "Average Hourly Bike Rentals per Working Day",
+    x = "Hour",
+    y = "Average Rentals",
+  )
+
+```
+The graphs in part B help test the relationships we find in part 1 by displaying the same rates during hours of the day but on either working days or non working days. What we see is that their is an inverse appearence in the graphs as during the non working days bike rentals are lower during the time people go to and from work, rather only increasing during the lunch hours and middle of the day. I would argue that the reason for this is that people are enjoying their leisure and waking up later during the non working day which shows the inverse numbers.
+
+## Part C
+```{r, echo=FALSE}
+
+bike3 <- read_csv("bikeshare.csv") |>  filter(hr == 9) |>
+  group_by(weathersit, workingday) |> summarise(avg_ridership = mean(total, na.rm = TRUE), .groups = "drop")
+
+ggplot(bike3) + (aes(x = as.factor(weathersit), y = avg_ridership, fill = as.factor(weathersit))) +
+  geom_bar(stat = "identity") +
+  facet_wrap(~workingday, labeller = labeller(workingday = c("0" = "Non-working Day", "1" = "Working Day"))) +  scale_fill_manual(values = c("1" = "orange", "2" = "blue", "3" = "pink")) +  labs(
+    title = "Average Ridership at 9 AM by Weather Level",
+    x = "Weather Level",
+    y = "Average Number of Riders",
+    fill = "Weather Level"
+  )
+
+```
+
+Part 3 attempts to display the rider rental rates during a specific time separated by the type of weather and on whether its aa working or non working day. What we notice is that severe weather which is level 3 dramatically reduces ridership especially on working days while clear weather keeps a strong rider rate no matter the type of weather.
+
+# Question 3
+
+```{r, echo=FALSE}
+cap <- read_csv("capmetro_UT.csv", show_col_types = FALSE)
+
+cap = mutate(cap, day_of_week = factor(day_of_week, levels=c("Mon", "Tue", "Wed","Thu", "Fri", "Sat", "Sun")), month = factor(month, levels=c("Sep", "Oct","Nov")))
+```
+
+## Part 1
+
+```{r, echo=FALSE}
+weekday <- cap |>  group_by(month, hour_of_day, day_of_week) |> summarise(avg = mean(boarding), .groups = "drop")
+
+ggplot(weekday) + aes(x = hour_of_day, y = avg, colour = month) + geom_line(linewidth = 1) +
+  facet_wrap(vars(day_of_week), scales = "free_x") + labs(
+    title = "Average Boardings Daily in September, Ocotber, and November",
+    x = "Hour",
+    y = "Average Boardings"
+  ) 
+
+```
+
+The analysis shows the different days of the week during September October and November and the relationship between number of boarding and the different hours of the day.
+Most notably was the the peak times for boarding were around 3 PM not specific to what day it was. In addition it displays that September has lower Monday ridership probably because of more semester activity or weekend holidays like labor day. In November the existent of holidays like thanksgiving break likely causes the declines in rates.
+
+
+## Part 2
+
+```{r, echo=FALSE}
+graph <- cap |>
+  group_by(hour_of_day, weekend) |>
+  summarise(  boarding = boarding, temperature = temperature, .groups = "drop")
+
+ggplot(graph, aes(x = temperature, y = boarding, color = weekend)) +
+  geom_point() + facet_wrap(vars(hour_of_day)) + labs(
+    title = "Average. Boardings vs. Average Temperature ",
+    x = "Temperature",
+    y = "Boardings"
+  ) 
+```
+
+Temperature has minimal direct impact on ridership when accounting for time of day and weekend status. However, its strongest effects are observed during evening hours (6–8 PM), potentially linked to social activities that increase the boarding rates.
+
+# Question 4
+
+## Part A
+
+```{r, echo=FALSE}
+billboard <- read_csv("billboard.csv", show_col_types = FALSE)
+
+table <- billboard |> group_by(performer, song) |>  summarize(count = n()) |>
+  arrange(desc(count)) |> head(n = 10)|> select(performer, song, count)
+
+kable(table)
+```
+This table just shows the top 10 songs based on the number of weeks the song stayed ont he billboard top 100 count. The table has genres of pop and also rock and roll taking the table with multiple entries of that category.
+## Part B
+
+```{r, echo=FALSE}
+unique <- billboard |> filter(year > 1958 & year < 2021) |> group_by(year) |>
+ summarize(unique = n_distinct(song))
+
+ggplot(unique, aes(x = year, y = unique)) + geom_line(color = 'orange') + geom_point(color = 'orange') + theme_minimal() +
+  labs(
+    title = "Change in Music Diversity in Billboard Top 100 from 1959-2020",
+    x = "Year of Billboard",
+    y = "Number of Unique Songs ",
+  )
+```
+
+The line graph shows the distribution over time in music diversity for the bill board top 100 as time passed from 1969 to 2020. It shows a decrease in music diversity up into the 2000s before it has started to reclimb and increase to the modern day.
+## Part C
+
+```{r, echo=FALSE}
+
+week <- billboard |> group_by(performer, song) |>
+  summarise(weeks_on_chart = n(), .groups = "drop") |> filter(weeks_on_chart >= 10) |>
+  count(performer, name = "ten_week") |>  filter(ten_week >= 30) |>
+  arrange(desc(ten_week))
+
+
+ggplot(week, aes(x = fct_reorder(performer, ten_week), y = ten_week)) +
+  geom_col(fill = "orange") + coord_flip() + labs(
+    title = "Artists with 30 or More Hits on Billboard Top 100 for 10 Weeks",
+    x = "Artist",
+    y = "Number of 10 Week Hits"
+  )
+
+
+```
+
+The bar graph just displays the number of artists across time with 30 or more hits that have landed on the top 100 list for more than 0 weeks. The number one artist was elton john with Madonna coming in close second.
